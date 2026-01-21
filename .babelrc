@@ -1,0 +1,11 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "modules": false   // ⭐ important: keep files ESM
+      }
+    ],
+    "@babel/preset-react"
+  ]
+}

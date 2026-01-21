@@ -1,0 +1,45 @@
+/* Hide these elements when printing */
+.print-hide {
+    display: none !important;
+}
+
+/* Show only the content we want when printing */
+@media print {
+    /* Hide everything in the body by default */
+    body * {
+        visibility: hidden;
+    }
+
+    /* Make the container visible */
+    .print-container {
+        visibility: visible !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none; /* Remove shadow for printing */
+    }
+
+    /* Make the specific summary content visible */
+    .print-container .print-only-content {
+        visibility: visible !important;
+        /* Force the summary content to take up the whole print area */
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        margin: 0;
+        /* Remove background/border styles not suitable for print */
+        background: white !important;
+        border: none !important;
+        padding: 20px !important;
+    }
+
+    /* Ensure client details are visible too if they are outside the summary */
+    .print-container .estimate-report-container > div:first-child {
+        /* You may need to target the client details specifically if they are important */
+        /* For now, we only focus on the summary and client details */
+    }
+}
