@@ -43,5 +43,13 @@ return [
     'enabled'     => env('MSG91_ENABLE', true),
 ],
 
+    'cashfree' => [
+        'env' => env('CASHFREE_ENV', 'sandbox'),
+        'app_id' => env('CASHFREE_APP_ID'),
+        'secret_key' => env('CASHFREE_SECRET_KEY'),
+        'api_endpoint' => env('CASHFREE_API_ENDPOINT'),
+        'api_version' => env('CASHFREE_API_VERSION', '2022-09-01'),
+    ],
+
 
 ];

@@ -121,17 +121,19 @@ export default function ClusterIndex({ cluster, clusters }) {
                                     key={product.slug}
                                     href={`/${product.slug}`}
                                     data={{ id: "product" }}
-                                    className="block rounded-lg overflow-hidden shadow-xl hover:shadow-lg transition duration-200 border p-4"
+                                    className="block rounded-lg overflow-hidden shadow-xl hover:shadow-lg transition duration-200 border p-4 h-full"
                                 >
-                                    <img
-                                        src={`/storage/${product.small_image}`}
-                                        alt={`${product.name} - ${name}`}
-                                        className="h-[80%] object-cover rounded-md mb-4 mx-auto"
-                                        onError={(e) => {
-                                            e.target.onerror = null;
-                                            e.target.src = `https://placehold.co/192x192/E0E0E0/A0A0A0?text=Product`;
-                                        }}
-                                    />
+                                    <div className="w-full aspect-square overflow-hidden rounded-md bg-gray-100 mb-4">
+                                        <img
+                                            src={`/storage/${product.small_image}`}
+                                            alt={`${product.name} - ${name}`}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = `https://placehold.co/600x600/E0E0E0/A0A0A0?text=Product`;
+                                            }}
+                                        />
+                                    </div>
 
                                     <h3 className="text-sm font-semibold text-gray-800">
                                         {product.name}

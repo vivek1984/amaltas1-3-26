@@ -28,8 +28,8 @@ export default function CartDisplay({
                     {/* Cart Items List */}
                     <div className="lg:w-2/3 bg-white p-6 rounded-lg shadow-md">
                         <h2 className="text-2xl font-bold text-gray-800 mb-6">Items ({totalItems})</h2>
-                        {cartItems.map((item) => (
-                            <div key={item.id} className="flex flex-col sm:flex-row items-center border-b border-gray-200 py-4 last:border-b-0">
+                        {cartItems.map((item, index) => (
+                            <div key={item.row_id ?? `${item.id}-${index}`} className="flex flex-col sm:flex-row items-center border-b border-gray-200 py-4 last:border-b-0">
                                 {/* Product Image */}
                                 <div className="flex-shrink-0 w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden mb-4 sm:mb-0 sm:mr-4">
                                     <img

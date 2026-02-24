@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Cluster;
+use App\Models\Group;
 use App\Models\Product;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -13,12 +15,21 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
+        $clusterIds = Cluster::pluck('id');
+        $groupIds = Group::pluck('id');
+
         Product::factory(100)->create()
-        ->each(function ($product) {
-            $product->clusters()->attach(array_rand([1, 2, 3, 4, 5, 6, 7, 8]));
+        ->each(function ($product) use ($clusterIds) {
+            if ($clusterIds->isNotEmpty()) {
+                $clusterId = $clusterIds->random();
+                $product->clusters()->syncWithoutDetaching([$clusterId]);
+            }
         })
-        ->each(function ($product) {
-            $product->groups()->attach(array_rand([1, 2, 3, 4, 5, 6, 7, 8]));
+        ->each(function ($product) use ($groupIds) {
+            if ($groupIds->isNotEmpty()) {
+                $groupId = $groupIds->random();
+                $product->groups()->syncWithoutDetaching([$groupId]);
+            }
         });
 
 

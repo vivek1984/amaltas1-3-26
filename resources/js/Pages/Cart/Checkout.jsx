@@ -5,7 +5,7 @@ import { useForm, Link, router } from "@inertiajs/react";
 import Welcome from "../Welcome";
 import { useCart } from '@/Context/CartContext';
 
-export default function Checkout({ itemData, clusters, user, userAddresses, userLocation }) {
+export default function Checkout({ itemData, clusters, user, userAddresses }) {
 
     const { clearCart, fetchCartItemsFromBackend } = useCart();
 
@@ -20,8 +20,6 @@ export default function Checkout({ itemData, clusters, user, userAddresses, user
         state: "",
         pincode: user?.pincode || "",
         mobile: user?.mobile || "",
-        latitude: userLocation?.latitude || null,
-        longitude: userLocation?.longitude || null,
         cart_contents: [],
     });
 

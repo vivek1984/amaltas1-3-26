@@ -47,13 +47,18 @@ const PaymentConfirmation = ({ clusters, cartItems, totalAmount, shippingDetails
         return csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : null;
     }, []);
 
+    const cashfreeMode = (import.meta.env.VITE_CASHFREE_ENV || 'production').toLowerCase();
+
     // --- Cashfree SDK Loading ---
     const loadCashfreeScript = useCallback(() => {
         console.log('Cashfree Script: Attempting to load Cashfree SDK.');
         return new Promise((resolve) => {
             if (typeof window.Cashfree !== 'undefined') {
                 console.log('Cashfree Script: Cashfree SDK already loaded.');
-                setCashfreeInstance(new window.Cashfree());
+                const instance = typeof window.Cashfree === 'function'
+                    ? window.Cashfree({ mode: cashfreeMode })
+                    : new window.Cashfree({ mode: cashfreeMode });
+                setCashfreeInstance(instance);
                 resolve(true);
                 return;
             }
@@ -62,7 +67,10 @@ const PaymentConfirmation = ({ clusters, cartItems, totalAmount, shippingDetails
             script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
             script.onload = () => {
                 console.log('Cashfree Script: Cashfree SDK loaded successfully.');
-                setCashfreeInstance(new window.Cashfree()); // Initialize Cashfree instance
+                const instance = typeof window.Cashfree === 'function'
+                    ? window.Cashfree({ mode: cashfreeMode })
+                    : new window.Cashfree({ mode: cashfreeMode });
+                setCashfreeInstance(instance); // Initialize Cashfree instance
                 resolve(true);
             };
             script.onerror = () => {
@@ -71,7 +79,7 @@ const PaymentConfirmation = ({ clusters, cartItems, totalAmount, shippingDetails
             };
             document.body.appendChild(script);
         });
-    }, []);
+    }, [cashfreeMode]);
 
     useEffect(() => {
         const loadScript = async () => {
@@ -108,7 +116,6 @@ const PaymentConfirmation = ({ clusters, cartItems, totalAmount, shippingDetails
         const checkoutOptions = {
             paymentSessionId: cashfreeDetails.payment_session_id,
             redirectTarget: "_self", // Use "_self" to redirect within the current window/iframe
-            mode: "redirect" // Required parameter for redirect flow
         };
 
         // --- ENHANCED DEBUGGING FOR CASHFREE REDIRECTION ---

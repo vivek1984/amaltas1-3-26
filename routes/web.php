@@ -42,6 +42,18 @@ Route::get('/site-urls', [SiteUrlController::class, 'index'])
 
 Route::put('/site-urls/{siteUrl}', [SiteUrlController::class, 'update'])
     ->name('site-urls.update');
+
+// Cart (guest + authenticated users)
+Route::get('/cart', [CartController::class, 'index'])->name('cart');
+Route::get('/cart-json', [CartController::class, 'indexJson'])->name('cart.json');
+Route::post('/cart/add-item', [CartController::class, 'addItem'])->name('cart.add.item');
+Route::post('/api/cart/save', [CartController::class, 'saveCart'])->name('cart.save');
+Route::get('/api/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/api/cart/remove-item', [CartController::class, 'removeItem'])->name('cart.removeItem');
+Route::post('/api/cart/update-quantity', [CartController::class, 'updateItemQuantity'])->name('cart.updateQuantity');
+Route::post('/api/cart/clear', [CartController::class, 'clearCart'])->name('cart.clearCart');
+Route::post('/restore', [CartController::class, 'restoreCart'])->name('restore-cart');
+
 // Authenticated routes (general)
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [WelcomeController::class, 'dashboard'])->name('dashboard');
@@ -50,17 +62,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    // Cart (authenticated users)
-    Route::get('/cart', [CartController::class, 'index'])->name('cart');
-    Route::get('/cart-json', [CartController::class, 'indexJson'])->name('cart.json');
-    Route::post('/cart/add-item', [CartController::class, 'addItem'])->name('cart.add.item');
-    Route::post('/api/cart/save', [CartController::class, 'saveCart'])->name('cart.save');
-    Route::get('/api/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::post('/api/cart/remove-item', [CartController::class, 'removeItem'])->name('cart.removeItem');
-    Route::post('/api/cart/update-quantity', [CartController::class, 'updateItemQuantity'])->name('cart.updateQuantity');
-    Route::post('/api/cart/clear', [CartController::class, 'clearCart'])->name('cart.clearCart');
-    Route::post('/restore', [CartController::class, 'restoreCart'])->name('restore-cart');
 
     // Checkout (single canonical set of routes)
     // Show checkout page (requires auth)

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Ccart;
 use App\Models\Cluster;
 use App\Models\Design;
-use App\Models\Location;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -19,11 +18,58 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Cashfree\Cashfree; // Correct: This is the main SDK class
+use Cashfree\ApiException;
 
 
 
 class CheckoutController extends Controller
 {
+    private function getCashfreeClient(): Cashfree
+    {
+        $cashfreeConfig = config('services.cashfree', []);
+
+        $cashfreeEnv = strtolower((string) ($cashfreeConfig['env'] ?? 'sandbox'));
+        $appId = trim((string) ($cashfreeConfig['app_id'] ?? ''));
+        $secretKey = trim((string) ($cashfreeConfig['secret_key'] ?? ''));
+        $configuredEndpoint = trim((string) ($cashfreeConfig['api_endpoint'] ?? ''));
+
+        $defaultEndpoint = $cashfreeEnv === 'production'
+            ? 'https://api.cashfree.com/pg'
+            : 'https://sandbox.cashfree.com/pg';
+        $apiEndpoint = $configuredEndpoint !== '' ? $configuredEndpoint : $defaultEndpoint;
+        $cashfreeEnvironmentFlag = $cashfreeEnv === 'production' ? 1 : 0;
+
+        if ($appId === '' || $secretKey === '') {
+            throw new \RuntimeException('Cashfree app credentials are not configured. Set CASHFREE_APP_ID and CASHFREE_SECRET_KEY.');
+        }
+
+        if (
+            ($cashfreeEnv === 'sandbox' && str_contains($secretKey, '_prod_')) ||
+            ($cashfreeEnv === 'production' && str_contains($secretKey, '_test_'))
+        ) {
+            throw new \RuntimeException("Cashfree credential mismatch: CASHFREE_ENV={$cashfreeEnv} but key type differs. Use sandbox keys with sandbox env and production keys with production env.");
+        }
+
+        if (
+            ($cashfreeEnv === 'production' && str_contains($apiEndpoint, 'sandbox.cashfree.com')) ||
+            ($cashfreeEnv === 'sandbox' && str_contains($apiEndpoint, 'api.cashfree.com'))
+        ) {
+            Log::warning("Cashfree endpoint appears mismatched with CASHFREE_ENV. SDK will use CASHFREE_ENV, not endpoint URL.", [
+                'cashfree_env' => $cashfreeEnv,
+                'configured_endpoint' => $apiEndpoint,
+            ]);
+        }
+
+        return new Cashfree(
+            $cashfreeEnvironmentFlag,
+            $appId,
+            $secretKey,
+            '', // XPartnerApiKey
+            '', // XPartnerMerchantId
+            '', // XClientSignature
+            false // XEnableErrorAnalytics
+        );
+    }
 
     /**
      * Display the checkout page.
@@ -76,10 +122,6 @@ class CheckoutController extends Controller
             'clusters' => $clusters,
             'user' => $user,
             'userAddresses' => $userAddresses,
-            'userLocation' => [
-                'latitude' => $request->session()->get('user_latitude'),
-                'longitude' => $request->session()->get('user_longitude'),
-            ],
         ]);
     }
 
@@ -137,8 +179,6 @@ class CheckoutController extends Controller
                 'state' => 'required|string|max:255',
                 'pincode' => 'required|string|digits:6',
                 'mobile' => 'required|string|max:15',
-                'latitude' => 'nullable|numeric',
-                'longitude' => 'nullable|numeric',
             ]);
 
             Log::debug('showPaymentConfirmation: Validated Data:', $validatedData);
@@ -159,8 +199,6 @@ class CheckoutController extends Controller
                 'shipping_state' => $validatedData['state'],
                 'shipping_pincode' => $validatedData['pincode'],
                 'shipping_mobile' => $validatedData['mobile'],
-                'latitude' => $validatedData['latitude'],
-                'longitude' => $validatedData['longitude'],
                 'total_amount' => $preparedTotalAmount,
                 'status' => 'pending', // Initial status
             ]);
@@ -275,36 +313,43 @@ class CheckoutController extends Controller
 
     public function nearDehradun($location)
     {
-    if (!$location || empty($location->city)) {
+        $city = null;
+
+        if (is_string($location)) {
+            $city = $location;
+        } elseif (is_array($location)) {
+            $city = $location['city'] ?? null;
+        } elseif (is_object($location)) {
+            $city = $location->city ?? null;
+        }
+
+        if (!is_string($city) || trim($city) === '') {
+            return false;
+        }
+
+        $city = strtolower(trim($city));
+        $city = preg_replace('/\s+/', ' ', $city);
+
+        $valid = ['dehradun', 'dehra dun', 'doon'];
+
+        if (in_array($city, $valid, true)) {
+            return true;
+        }
+
+        foreach ($valid as $v) {
+            similar_text($city, $v, $percent);
+            if ($percent >= 75) {
+                return true;
+            }
+        }
+
+        foreach ($valid as $v) {
+            if (levenshtein($city, $v) <= 3) {
+                return true;
+            }
+        }
+
         return false;
-    }
-
-    $city = strtolower(trim($location->city));
-
-    // Correct spellings
-    $valid = ['dehradun', 'dehra dun', 'doon'];
-
-    // Check exact match
-    if (in_array($city, $valid)) {
-        return true;
-    }
-
-    // Fuzzy match (80% similarity or >= 2 letter difference allowed)
-    foreach ($valid as $v) {
-        similar_text($city, $v, $percent);
-        if ($percent >= 75) {   // you can adjust 75
-            return true;
-        }
-    }
-
-    // Levenshtein distance (allows 1-3 spelling mistakes)
-    foreach ($valid as $v) {
-        if (levenshtein($city, $v) <= 3) {
-            return true;
-        }
-    }
-
-    return false;
     }
 
 
@@ -424,15 +469,7 @@ class CheckoutController extends Controller
 
             $cashfreeAmount = number_format($finalAmount, 2, '.', '');
 
-            $cashfreeApi = new Cashfree(
-                env('CASHFREE_API_ENDPOINT'),
-                env('CASHFREE_APP_ID'),
-                env('CASHFREE_SECRET_KEY'),
-                '', // XPartnerApiKey
-                '', // XPartnerMerchantId
-                '', // XClientSignature
-                false // XEnableErrorAnalytics
-            );
+            $cashfreeApi = $this->getCashfreeClient();
 
             $cf_order_id = 'ORDER_' . $order->id . '_' . strtoupper($validatedData['payment_type']) . '_' . uniqid();
 
@@ -441,8 +478,10 @@ class CheckoutController extends Controller
             Log::info("Cashfree order_expiry_time being sent: " . $expiryTime);
 
             // --- FIX START: Append Cashfree's order_id to return_url and notify_url ---
-            $returnUrl = route('checkout.verify-cashfree-payment') . '?order_id=' . $order->id . '&payment_type=' . $validatedData['payment_type'] . '&cf_order_id=' . $cf_order_id;
-            $notifyUrl = route('checkout.verify-cashfree-payment') . '?order_id=' . $order->id . '&payment_type=' . $validatedData['payment_type'] . '&cf_order_id=' . $cf_order_id;
+            $callbackBaseUrl = rtrim((string) config('app.url'), '/') . route('checkout.verify-cashfree-payment', [], false);
+            $returnUrl = $callbackBaseUrl . '?local_order_id=' . $order->id . '&payment_type=' . $validatedData['payment_type'] . '&cf_order_id={order_id}';
+            // Keep notify URL plain HTTPS endpoint; Cashfree may reject templated/query-heavy notify URLs.
+            $notifyUrl = $callbackBaseUrl;
             // --- FIX END ---
 
             $createOrderRequest = [
@@ -502,8 +541,22 @@ class CheckoutController extends Controller
                 'message' => 'Validation failed.',
                 'errors' => $e->errors(),
             ], 422);
+        } catch (ApiException $e) {
+            Log::error('getCashfreeDetailsForOrder: Cashfree API exception: ' . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $request->all(),
+                'cashfree_return_url' => $returnUrl ?? null,
+                'cashfree_notify_url' => $notifyUrl ?? null,
+            ]);
+
+            $isAuthError = (int) $e->getCode() === 401 || str_contains(strtolower($e->getMessage()), 'authentication');
+            return response()->json([
+                'message' => $isAuthError
+                    ? 'Cashfree authentication failed. Verify CASHFREE_ENV, CASHFREE_APP_ID, CASHFREE_SECRET_KEY, and CASHFREE_API_ENDPOINT.'
+                    : 'Cashfree API request failed while preparing payment details.',
+                'error' => $e->getMessage(),
+            ], 500);
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('getCashfreeDetailsForOrder: Error generating Cashfree details: ' . $e->getMessage(), [
                 'exception' => $e,
                 'request_data' => $request->all(),
@@ -523,12 +576,19 @@ class CheckoutController extends Controller
         Log::info('verifyCashfreePayment: Incoming Cashfree verification request input (POST/GET):', $request->input());
         // --- END ENHANCED DEBUGGING ---
 
-        $localOrderId = $request->query('order_id') ?? $request->input('order_id');
-        // Cashfree typically sends its own order ID as 'orderId' or 'cf_order_id'
-        // Let's prioritize 'orderId' from input, then 'cf_order_id' if available.
-        $cashfreeOrderId = $request->input('orderId') ?? $request->input('cf_order_id'); // This should now pick up from query string
+        $localOrderId = $request->query('local_order_id') ?? $request->input('local_order_id') ?? $request->query('order_id') ?? $request->input('order_id');
+        // Cashfree typically sends its own order ID as 'orderId' or 'cf_order_id'.
+        $cashfreeOrderId = $request->input('orderId')
+            ?? $request->input('cf_order_id')
+            ?? $request->query('orderId')
+            ?? $request->query('cf_order_id');
         $cashfreePaymentId = $request->input('paymentId') ?? $request->input('cf_payment_id');
         $paymentStatus = $request->input('txStatus'); // Transaction status from Cashfree
+
+        // For notify callbacks, local order ID may not be present. Recover it from internal Cashfree order_id format.
+        if (!$localOrderId && $cashfreeOrderId && preg_match('/^ORDER_(\d+)_/i', $cashfreeOrderId, $matches)) {
+            $localOrderId = (int) $matches[1];
+        }
 
         Log::info("verifyCashfreePayment: Extracted variables - localOrderId: {$localOrderId}, cashfreeOrderId: {$cashfreeOrderId}, cashfreePaymentId: {$cashfreePaymentId}, paymentStatus: {$paymentStatus}");
 
@@ -554,15 +614,7 @@ class CheckoutController extends Controller
                 throw new \Exception('Order not found for Cashfree payment verification.');
             }
 
-            $cashfreeApi = new Cashfree(
-                env('CASHFREE_API_ENDPOINT'),
-                env('CASHFREE_APP_ID'),
-                env('CASHFREE_SECRET_KEY'),
-                '', // XPartnerApiKey
-                '', // XPartnerMerchantId
-                '', // XClientSignature
-                false // XEnableErrorAnalytics
-            );
+            $cashfreeApi = $this->getCashfreeClient();
 
             // Call Cashfree API to verify the order status
             Log::info("verifyCashfreePayment: Calling Cashfree PGFetchOrder for Cashfree Order ID: {$cashfreeOrderId}");
@@ -599,6 +651,13 @@ class CheckoutController extends Controller
                 return redirect()->route('cart.index')->with('error', 'Payment failed or pending. Please check your order status.');
             }
 
+        } catch (ApiException $e) {
+            DB::rollBack();
+            Log::error('verifyCashfreePayment: Cashfree API exception: ' . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $request->all(),
+            ]);
+            return redirect()->route('cart.index')->with('error', 'Cashfree authentication/API error during verification. Check Cashfree env keys.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('verifyCashfreePayment: Error verifying Cashfree payment: ' . $e->getMessage(), [

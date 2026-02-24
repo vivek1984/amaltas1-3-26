@@ -1,4 +1,3 @@
-import useGeolocation from '../Index/useGeolocation';
 import React, { useMemo, useCallback } from 'react';
 
 import Welcome from "../Welcome";
@@ -33,10 +32,7 @@ import { useCart } from '@/Context/CartContext';
  */
 export default function CartPage ({ itemData, clusters }) {
 
-    const { userLocation, locationStatus, locationError } = useGeolocation();
-    console.log(userLocation, locationStatus, locationError);
-    const loc = userLocation;
-    const { removeItemFromCart, updateItemQuantity, clearCart,  fetchCartItemsFromBackend } = useCart();
+    const { removeItemFromCart, updateItemQuantity, clearCart } = useCart();
     // ADDED: Get auth object from Inertia page props
     const { auth } = usePage().props;
     const user = auth.user; // Get the logged-in user object (will be null if not logged in)
@@ -44,7 +40,7 @@ export default function CartPage ({ itemData, clusters }) {
     // Helper function to create the composite ID (must match ProductPage.jsx and CartContext's logic)
     // This is used to create a stable 'id' for frontend rendering, even if backend 'id' is different.
     const createCompositeId = (productId, varientId, designId, sizeId) => { // Changed parameter name to varientId
-        const idParts = [`v${productId + varientId}`];
+        const idParts = [`p${productId ?? 'na'}`, `v${varientId ?? 'na'}`];
         if (designId) {
             idParts.push(`d${designId}`);
         }
@@ -59,6 +55,7 @@ export default function CartPage ({ itemData, clusters }) {
     const transformedCartItems = useMemo(() => {
         if (!itemData) return [];
         return itemData.map(item => ({
+            row_id: item.id,
             // Use the composite ID as the primary identifier for frontend rendering
             // This is crucial for React's reconciliation and consistent keying.
             id: createCompositeId(item.product_id,item.varient_id, item.design_id, item.size_id), // Changed to item.varient_id
@@ -169,7 +166,6 @@ export default function CartPage ({ itemData, clusters }) {
             console.warn("Attempted to update quantity for non-existent item:", compositeProductId);
             return;
         }
-        fetchCartItemsFromBackend();
         const payload = {
             product_id: itemToUpdate.product_id,
             varient_id: itemToUpdate.varient_id || null, // Changed to varient_id
@@ -217,30 +213,10 @@ export default function CartPage ({ itemData, clusters }) {
             mrp: item.mrp,
 
         }));
-
         const requestData = {
             cart_contents: checkoutPayload,
-            latitude: null, // Explicitly initialize to null
-            longitude: null, // Explicitly initialize to null
         };
 
-        // --- START ENHANCED DEBUGGING LOGS FOR LOCATION ---
-        console.log('--- handleProceedToCheckout: Location Debugging ---');
-        console.log('Current locationStatus:', locationStatus);
-        console.log('Current userLocation (loc):', userLocation);
-        console.log('Current locationError:', locationError);
-        // --- END ENHANCED DEBUGGING LOGS FOR LOCATION ---
-
-        // Add location data to the payload if available and granted
-        if (locationStatus === 'granted' && userLocation) {
-            requestData.latitude = userLocation.latitude;
-            requestData.longitude = userLocation.longitude;
-            console.log('Sending location data with checkout payload:', userLocation);
-        }
-
-
-
-        // CRITICAL FIX: Change router.get to router.post and target the 'checkout.prepare' route
         router.get(route('checkout.show'), requestData, {
             onStart: () => console.log('Initiating checkout...'),
             onSuccess: (page) => {

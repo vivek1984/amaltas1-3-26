@@ -14,9 +14,17 @@ class GroupSeeder extends Seeder
      */
     public function run(): void
     {
+        $clusterIds = Cluster::pluck('id');
+        if ($clusterIds->isEmpty()) {
+            return;
+        }
+
         Group::factory(10)->create()
             ->each(function ($group) {
-                $group->clusters()->attach(array_rand([1, 2, 3, 4, 5, 6, 7, 8]));
+                $clusterId = Cluster::inRandomOrder()->value('id');
+                if ($clusterId) {
+                    $group->clusters()->syncWithoutDetaching([$clusterId]);
+                }
             });
     }
 }
