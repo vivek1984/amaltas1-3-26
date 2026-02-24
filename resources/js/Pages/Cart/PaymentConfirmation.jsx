@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import Welcome from '../Welcome';
-import { useCart } from '../Category/CartContext';
+import { useCart } from '@/Context/CartContext';
 
 /**
  * PaymentConfirmation Component

@@ -23,20 +23,17 @@ class ClusterController extends Controller
         if($request->id === 'group') return $this->group($path, $request);
         if($request->id === 'cluster') return $this->cluster($path, $request);
         if($request->id === 'product') return $this->product($path);
-
-
-
-        $currentUrl = $request->fullUrl();
-
-        $siteUrl = SiteUrl::where('url', $currentUrl)->first();
+        
+        
+        $pathStr = $request->path();
+        $dbUrlToCheck = 'https://www.amaltasfurniture.com/' . $pathStr;
+        $siteUrl = SiteUrl::where('url', $dbUrlToCheck)->first();
 
         if ($siteUrl) {
-            // If new_url exists → redirect to it
             if (!empty($siteUrl->new_url)) {
                 return redirect($siteUrl->new_url, 301);
             }
-
-            // If new_url is null → redirect to homepage
+            // If found in DB but no new_url, standard redirect to home
             return redirect('/');
         }
 

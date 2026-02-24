@@ -2,7 +2,7 @@ import { Link } from "@inertiajs/react";
 import SearchBar from "./SearchBar";
 import UserRegister from "./UserRegister";
 import Cart from "./Cart";
-import { useCart } from '../Category/CartContext';
+import { useCart } from '@/Context/CartContext';
 
 export default function SecondStrip () {
 
@@ -23,27 +23,3 @@ export default function SecondStrip () {
         </div>
     );
 };
-
-// sofas
-// bedroom
-// dining
-// Storage
-// Office
-// Tables
-// Living Room
-// Modular Kitchens
-// Temples
-
-// Sofa Sets
-
-// Fabric Sofas
-// Wooden Sofas
-// Carving Teak Sofas
-// Sofa Cum Bed
-// 3+1+1 Sofa Sets
-// L Shaped Sofas
-// Office Sofas
-// Wingback Chairs
-// Lounge Chairs
-// Accent Chairs
-// Recliners

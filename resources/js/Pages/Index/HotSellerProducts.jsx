@@ -17,7 +17,7 @@ export default function HotSellerProducts({ products = [] }) {
                 {/* Products Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-6">
 
-                    {products.slice(0, 10).map((product, index) => (
+                    {products.slice(0, 20).map((product, index) => (
                         <a
                             key={index}
                            href={`${product.slug}?id=product`}

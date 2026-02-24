@@ -1,24 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function useQuestionOnScroll() {
   const [showPrompt, setShowPrompt] = useState(false);
+  const triggeredRef = useRef(false);
 
   useEffect(() => {
-    // const alreadyAnswered = localStorage.getItem("locationQuestionAnswered");
-    // if (alreadyAnswered) return;
-
     const handleScroll = () => {
-      window.removeEventListener("scroll", handleScroll);
+      if (triggeredRef.current) return;
 
-      // wait 2s after first scroll
+      triggeredRef.current = true;
+
       setTimeout(() => {
         setShowPrompt(true);
       }, 2000);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { once: true });
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   return [showPrompt, setShowPrompt];

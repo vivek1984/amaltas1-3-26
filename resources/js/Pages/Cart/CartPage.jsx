@@ -4,7 +4,7 @@ import React, { useMemo, useCallback } from 'react';
 import Welcome from "../Welcome";
 import CartDisplay from './CartDisplay'; // Import the new CartDisplay component
 import { router, usePage } from '@inertiajs/react'; // Import router for page reloads and usePage for auth
-import { useCart } from '../Category/CartContext';
+import { useCart } from '@/Context/CartContext';
 
 
 

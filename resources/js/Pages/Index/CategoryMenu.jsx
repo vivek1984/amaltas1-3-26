@@ -3,7 +3,7 @@ import { Link } from "@inertiajs/react";
 import Cart from "./Cart";
 import UserRegister from "./UserRegister";
 import SearchBar from "./SearchBar";
-import { useCart } from "../Category/CartContext";
+import { useCart } from '@/Context/CartContext';
 
 const CategoryMenu = ({ clusters }) => {
   const { totalItems } = useCart();

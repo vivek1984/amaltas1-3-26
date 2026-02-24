@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Head, router } from "@inertiajs/react";
 import ImageGallery from "./ImageGallery"; // same folder
-import { useCart } from "../Category/CartContext";
+import { useCart } from '@/Context/CartContext';
 
 /**
  * ProductPage - Layout B (wider gallery focus)
@@ -492,6 +492,15 @@ const productJsonLd = {
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <Head title={`${product.name} | Amaltas Furniture`}>
+      
+  
+  {mainProductImages.filter(img => img.type === "image").length > 0 && (
+    <meta 
+      property="og:image" 
+      content={`${typeof window !== 'undefined' ? window.location.origin : ''}/storage/${mainProductImages.filter(img => img.type === "image")[0].name}`} 
+    />
+  )}
+      
   <script
     type="application/ld+json"
     dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}

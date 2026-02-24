@@ -67,7 +67,7 @@ const PopularCategories = ({ clusters }) => {
         // --- Deduplication Logic ---
         const uniqueCategories = [];
         const seen = new Set(); // To store unique identifiers like 'cluster-1', 'group-abc'
-        const desiredCount = 10; // The desired number of top unique categories to display
+        const desiredCount = 20; // The desired number of top unique categories to display
 
         for (const category of allCategories) {
             const uniqueKey = `${category.type}-${category.id}`; // Create a unique key for each item

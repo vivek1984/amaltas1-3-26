@@ -155,6 +155,6 @@ Route::get('terms-of-use', [StaticController::class, 'termsOfUse'])->name('terms
 require __DIR__ . '/auth.php';
 
 // Catch-all route for cluster/group/product slugs
-// IMPORTANT: Keep this last. Exclude common prefixes so it doesn't shadow API/static routes.
 Route::get('{path}', [ClusterController::class, 'index'])
-    ->where('path', '^(?!api|images|storage|vendor|js|css).*$');
+    // Added 'assets' and 'build' to the exclusion list
+    ->where('path', '^(?!api|images|storage|vendor|css|js|build|assets).*$');

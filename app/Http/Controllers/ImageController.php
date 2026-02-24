@@ -12,53 +12,124 @@ use Inertia\Inertia;
 use Intervention\Image\Drivers\Imagick\Driver;
 use Intervention\Image\ImageManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
 
 class ImageController extends Controller
 {
+
+// private function handleImage(
+//     UploadedFile $file,
+//     string $directory = 'images',
+//     int $width = null,
+//     int $quality = 80
+// ) {
+//     // 🔒 Ensure Imagick is available
+//     if (!extension_loaded('imagick')) {
+//         throw new \RuntimeException('Imagick extension is not loaded');
+//     }
+
+//     // 🔒 Absolute watermark path (storage, NOT public)
+//     $watermarkPath = storage_path('app/public/watermark.png');
+
+//     if (!file_exists($watermarkPath)) {
+//         throw new \RuntimeException('Watermark file not found at ' . $watermarkPath);
+//     }
+
+//     // Image manager (Imagick)
+//     $manager = new ImageManager(new Driver());
+
+//     // Read uploaded image
+//     $image = $manager->read($file);
+
+//     // Resize safely (no upscaling)
+//     if ($width !== null) {
+//         $image = $image->scaleDown(width: $width);
+//     }
+
+//     // ✅ Apply watermark
+//     if($width > 400)
+//     $image->place(
+//         $watermarkPath, // absolute filesystem path
+//         'bottom-right', // position
+//         20,             // x offset
+//         20,             // y offset
+//         50              // opacity (0–100)
+//     );
+
+//     // ✅ Force WebP output
+//     $filename = time() . '_' . uniqid('', true) . '.webp';
+//     $binary = $image->toWebp($quality);
+
+//     // Save to storage
+//     $path = $directory . '/' . $filename;
+//     Storage::disk('public')->put($path, $binary);
+
+//     return $path;
+// }
 private function handleImage(
     UploadedFile $file,
     string $directory = 'images',
     int $width = null,
     int $quality = 80
 ) {
-    // 🔒 Ensure Imagick is available
+    // 1. Critical Check: Ensure Imagick is loaded
     if (!extension_loaded('imagick')) {
-        throw new \RuntimeException('Imagick extension is not loaded');
+        \Log::error("CRITICAL: Imagick extension is not loaded.");
+        throw new \RuntimeException('Imagick extension is not loaded on this server.');
     }
 
-    // 🔒 Absolute watermark path (storage, NOT public)
-    $watermarkPath = storage_path('app/public/watermark.png');
-
-    if (!file_exists($watermarkPath)) {
-        throw new \RuntimeException('Watermark file not found at ' . $watermarkPath);
-    }
-
-    // Image manager (Imagick)
+    // 2. Load the Main Image
     $manager = new ImageManager(new Driver());
-
-    // Read uploaded image
     $image = $manager->read($file);
 
-    // Resize safely (no upscaling)
+    // 3. Resize Main Image (If width is provided, e.g., 1000 or 100)
     if ($width !== null) {
-        $image = $image->scaleDown(width: $width);
+        $image->scaleDown(width: $width);
     }
 
-    // ✅ Apply watermark
-    if($width > 400)
-    $image->place(
-        $watermarkPath, // absolute filesystem path
-        'bottom-right', // position
-        20,             // x offset
-        20,             // y offset
-        50              // opacity (0–100)
-    );
+    // 4. Apply Watermark 
+    // Logic: Only apply if the image is larger than 400px.
+    // This automatically skips thumbnails (100px) so they stay clean.
+    if ($image->width() > 400) {
+        
+        // Locate Watermark
+        $watermarkPath = storage_path('app/public/watermark.png');
+        if (!file_exists($watermarkPath)) {
+            $watermarkPath = public_path('watermark.png'); // Fallback check
+        }
 
-    // ✅ Force WebP output
+        // Apply if found
+        if (file_exists($watermarkPath)) {
+            try {
+                // Read watermark file
+                $watermark = $manager->read($watermarkPath);
+
+                // Resize watermark to 40% of the main image width
+                // (Ensures it fits perfectly on any size image)
+                $watermark->scaleDown(width: $image->width() * 0.40);
+
+                // Place Watermark: Bottom-Right, 100% Opacity
+                $image->place(
+                    $watermark,      
+                    'bottom-right',  
+                    20,             // X offset 
+                    20,             // Y offset
+                    100             // Opacity (100 = Solid, needed for dark red logo)
+                );
+            } catch (\Exception $e) {
+                // Log error but allow upload to finish without watermark
+                \Log::error("Watermark failed to apply: " . $e->getMessage());
+            }
+        } else {
+            \Log::warning("Watermark file missing. Uploading image without it.");
+        }
+    }
+
+    // 5. Save as WebP
     $filename = time() . '_' . uniqid('', true) . '.webp';
     $binary = $image->toWebp($quality);
 
-    // Save to storage
     $path = $directory . '/' . $filename;
     Storage::disk('public')->put($path, $binary);
 

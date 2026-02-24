@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useForm, Link, router } from "@inertiajs/react";
 import Welcome from "../Welcome";
-import { useCart } from "../Category/CartContext";
+import { useCart } from '@/Context/CartContext';
 
 export default function Checkout({ itemData, clusters, user, userAddresses, userLocation }) {
 

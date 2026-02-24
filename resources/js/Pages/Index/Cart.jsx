@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from '@inertiajs/react'; // Assuming you use Inertia's Link for navigation
 import { LuShoppingCart } from "react-icons/lu"; // Using the icon you provided
-import { useCart } from '../Category/CartContext'; // Import the useCart hook to access cart items
+import { useCart } from '@/Context/CartContext'; // Import the useCart hook to access cart items
 
 /**
  * Cart Component

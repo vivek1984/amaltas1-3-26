@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Zoom, Keyboard } from "swiper/modules";
 
@@ -29,6 +29,8 @@ export default function ImageGallery({ images = [], productName }) {
   /* ---------- STATE ---------- */
   const [index, setIndex] = useState(0);
   const [open, setOpen] = useState(false);
+  const touchStartXRef = useRef(null);
+  const touchStartYRef = useRef(null);
 
   const active = orderedImages[index];
   const hasMultiple = orderedImages.length > 1;
@@ -52,6 +54,33 @@ export default function ImageGallery({ images = [], productName }) {
   const next = () =>
     setIndex(index === orderedImages.length - 1 ? 0 : index + 1);
 
+  const handleTouchStart = (event) => {
+    const touch = event.touches?.[0];
+    if (!touch) return;
+    touchStartXRef.current = touch.clientX;
+    touchStartYRef.current = touch.clientY;
+  };
+
+  const handleTouchEnd = (event) => {
+    if (!hasMultiple) return;
+    const touch = event.changedTouches?.[0];
+    if (!touch || touchStartXRef.current === null || touchStartYRef.current === null) return;
+
+    const diffX = touch.clientX - touchStartXRef.current;
+    const diffY = touch.clientY - touchStartYRef.current;
+    const absX = Math.abs(diffX);
+    const absY = Math.abs(diffY);
+    const swipeThreshold = 40;
+
+    if (absX >= swipeThreshold && absX > absY) {
+      if (diffX < 0) next();
+      else prev();
+    }
+
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+  };
+
   /* ---------- RENDER ---------- */
   return (
     <>
@@ -71,7 +100,11 @@ export default function ImageGallery({ images = [], productName }) {
         )}
 
         {/* MEDIA FRAME */}
-        <div className="flex-1 bg-black rounded-lg overflow-hidden">
+        <div
+          className="flex-1 bg-black rounded-lg overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           {active?.type === "youtube" ? (
             <div
               className={`w-full ${

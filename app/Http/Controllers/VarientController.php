@@ -17,7 +17,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
-use Intervention\Image\Drivers\Gd\Driver;
+
+use Intervention\Image\Drivers\Imagick\Driver;
 use Intervention\Image\ImageManager;
 
 class VarientController extends Controller
@@ -176,22 +177,74 @@ class VarientController extends Controller
         dd(request()->all());
     }
 
-    private function handleImage(UploadedFile $file, string $directory = 'images', int $width = null, int $quality = 80) {
-
-
-        $manager = new ImageManager(new Driver());
-        $image = $manager->read($file);
-        if($width !=null)
-        $image = $image->scale(width: $width);
-        $extension = $file->getClientOriginalExtension(); // Get original extension
-        $filename = time() . '_' . uniqid() . '.' . $extension; // e.g., 1678881234_654321.jpg
-
-        $encodeImage = $image->toJpeg($quality);
-        $path = $directory . '/' . $filename;
-        Storage::disk('public')->put($path, $encodeImage);
-
-        return $path;
+    private function handleImage(
+    UploadedFile $file,
+    string $directory = 'images',
+    int $width = null,
+    int $quality = 80
+) {
+    // 1. Critical Check: Ensure Imagick is loaded
+    if (!extension_loaded('imagick')) {
+        \Log::error("CRITICAL: Imagick extension is not loaded.");
+        throw new \RuntimeException('Imagick extension is not loaded on this server.');
     }
+
+    // 2. Load the Main Image
+    $manager = new ImageManager(new Driver());
+    $image = $manager->read($file);
+
+    // 3. Resize Main Image (If width is provided, e.g., 1000 or 100)
+    if ($width !== null) {
+        $image->scaleDown(width: $width);
+    }
+
+    // 4. Apply Watermark 
+    // Logic: Only apply if the image is larger than 400px.
+    // This automatically skips thumbnails (100px) so they stay clean.
+    if ($image->width() > 400) {
+        
+        // Locate Watermark
+        $watermarkPath = storage_path('app/public/watermark.png');
+        if (!file_exists($watermarkPath)) {
+            $watermarkPath = public_path('watermark.png'); // Fallback check
+        }
+
+        // Apply if found
+        if (file_exists($watermarkPath)) {
+            try {
+                // Read watermark file
+                $watermark = $manager->read($watermarkPath);
+
+                // Resize watermark to 40% of the main image width
+                // (Ensures it fits perfectly on any size image)
+                $watermark->scaleDown(width: $image->width() * 0.20);
+
+                // Place Watermark: Bottom-Right, 100% Opacity
+                $image->place(
+                    $watermark,      
+                    'bottom-right',  
+                    20,             // X offset 
+                    20,             // Y offset
+                    100             // Opacity (100 = Solid, needed for dark red logo)
+                );
+            } catch (\Exception $e) {
+                // Log error but allow upload to finish without watermark
+                \Log::error("Watermark failed to apply: " . $e->getMessage());
+            }
+        } else {
+            \Log::warning("Watermark file missing. Uploading image without it.");
+        }
+    }
+
+    // 5. Save as WebP
+    $filename = time() . '_' . uniqid('', true) . '.webp';
+    $binary = $image->toWebp($quality);
+
+    $path = $directory . '/' . $filename;
+    Storage::disk('public')->put($path, $binary);
+
+    return $path;
+}
 
     public function editProductClusters(Request $request) {
         $product = Product::find($request->product);

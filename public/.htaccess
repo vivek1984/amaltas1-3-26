@@ -1,3 +1,13 @@
+# -------------------------------------------------
+# 1️⃣ FIX CORS & FONTS (Allow cross-origin assets)
+# -------------------------------------------------
+<IfModule mod_headers.c>
+    <FilesMatch "\.(js|css|json|manifest|woff|woff2|ttf|svg|eot|otf|gif|png|jpg|jpeg|webp)$">
+        Header set Access-Control-Allow-Origin "*"
+        Header set Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
+    </FilesMatch>
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
@@ -5,21 +15,52 @@
 
     RewriteEngine On
 
-    # Handle Authorization Header
+    # -------------------------------------------------
+    # 2️⃣ FORCE non-www (Fixes the domain mismatch)
+    # Redirects www.amaltasfurniture.com -> amaltasfurniture.com
+    # -------------------------------------------------
+    RewriteCond %{HTTP_HOST} ^www\.amaltasfurniture\.com [NC]
+    RewriteRule ^(.*)$ https://amaltasfurniture.com/$1 [L,R=301]
+
+    # -------------------------------------------------
+    # 3️⃣ FORCE HTTPS (Optional but recommended)
+    # -------------------------------------------------
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # -------------------------------------------------
+    # 4️⃣ Bypass Laravel for Vite assets
+    # -------------------------------------------------
+    RewriteCond %{REQUEST_URI} ^/build/ [NC]
+    RewriteRule ^ - [L]
+
+    # -------------------------------------------------
+    # 5️⃣ Serve existing files & folders FIRST
+    # -------------------------------------------------
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # -------------------------------------------------
+    # 6️⃣ Pass Auth Headers
+    # -------------------------------------------------
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Handle X-XSRF-Token Header
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
-    # Redirect Trailing Slashes If Not A Folder...
+    # -------------------------------------------------
+    # 7️⃣ Redirect trailing slash
+    # -------------------------------------------------
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Send Requests To Front Controller...
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_FILENAME} !-f
+    # -------------------------------------------------
+    # 8️⃣ Laravel Front Controller (Entry Point)
+    # -------------------------------------------------
     RewriteRule ^ index.php [L]
 </IfModule>

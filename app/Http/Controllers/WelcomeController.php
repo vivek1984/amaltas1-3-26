@@ -38,7 +38,7 @@ class WelcomeController extends Controller
         'varients.images'
             ])
             ->orderBy('clicks', 'DESC')   // highest clicks first
-            ->take(10)                    // limit 10 products
+            ->take(20)                    // limit 20 products
             ->get();
 
         return Inertia::render('Index/Index', ['clusters' => $clusters, 'products' => $products]);

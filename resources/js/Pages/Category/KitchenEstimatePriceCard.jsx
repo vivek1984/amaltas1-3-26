@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import Welcome from "../Welcome";
 
 export default function KitchenEstimatePriceCard({
@@ -8,8 +8,6 @@ export default function KitchenEstimatePriceCard({
   material = [],
   clusters,
 }) {
-  const [showDetails, setShowDetails] = useState(false);
-
   // 🔹 Safely parse backend material array
   const layout = material?.[0] ?? null;
   const cabinetMaterial = material?.[1] ?? null;
@@ -95,85 +93,74 @@ export default function KitchenEstimatePriceCard({
 
         {/* 🔹 Cabinets & Hardware */}
         <div className="bg-gray-50 border-t">
-          <button
-            onClick={() => setShowDetails((prev) => !prev)}
-            aria-expanded={showDetails}
-            className="w-full px-6 py-4 flex justify-between items-center text-sm font-semibold text-gray-800 hover:bg-gray-100 transition"
-          >
-            <span>Included Cabinets & Hardware</span>
-            <span
-              className={`transition-transform ${
-                showDetails ? "rotate-180" : ""
-              }`}
-            >
-              ⌄
-            </span>
-          </button>
+          <div className="px-6 py-4">
+            <p className="text-sm font-semibold text-gray-800">
+              Included Cabinets & Hardware
+            </p>
+          </div>
 
-          {showDetails && (
-            <div className="px-6 pb-6 space-y-4">
-              {cabinets.length === 0 && (
-                <p className="text-sm text-gray-500 italic">
-                  No cabinet details available.
-                </p>
-              )}
+          <div className="px-6 pb-6 space-y-4">
+            {cabinets.length === 0 && (
+              <p className="text-sm text-gray-500 italic">
+                No cabinet details available.
+              </p>
+            )}
 
-              {cabinets.map((cabinet, idx) => {
-                const cabinetImage = getCabinetImage(cabinet);
+            {cabinets.map((cabinet, idx) => {
+              const cabinetImage = getCabinetImage(cabinet);
 
-                return (
-                  <div
-                    key={idx}
-                    className="flex gap-4 p-5 bg-white border rounded-xl hover:shadow-md transition"
-                  >
-                    {/* 🔹 Image */}
-                    <div className="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                      {cabinetImage ? (
-                        <img
-                          src={cabinetImage}
-                          alt={cabinet?.cabinet_name || "Cabinet"}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
-                          No Image
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 🔹 Details */}
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900 text-sm">
-                        {cabinet?.cabinet_name || "Unnamed Cabinet"}
-                      </p>
-
-                      {Array.isArray(cabinet?.hardware) &&
-                      cabinet.hardware.length > 0 ? (
-                        <ul className="mt-2 space-y-1 text-xs text-gray-600">
-                          {cabinet.hardware.map((h, i) => (
-                            <li
-                              key={i}
-                              className="flex justify-between"
-                            >
-                              <span>{h?.name}</span>
-                              <span className="font-medium">
-                                × {h?.quantity}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-xs text-gray-500 italic mt-1">
-                          No hardware included
-                        </p>
-                      )}
-                    </div>
+              return (
+                <div
+                  key={idx}
+                  className="flex gap-4 p-5 bg-white border rounded-xl hover:shadow-md transition"
+                >
+                  {/* 🔹 Image */}
+                  <div className="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                    {cabinetImage ? (
+                      <img
+                        src={cabinetImage}
+                        alt={cabinet?.cabinet_name || "Cabinet"}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+                        No Image
+                      </div>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          )}
+
+                  {/* 🔹 Details */}
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 text-sm">
+                      {cabinet?.cabinet_name || "Unnamed Cabinet"}
+                    </p>
+
+                    {Array.isArray(cabinet?.hardware) &&
+                    cabinet.hardware.length > 0 ? (
+                      <ul className="mt-2 space-y-1 text-xs text-gray-600">
+                        {cabinet.hardware.map((h, i) => (
+                          <li
+                            key={i}
+                            className="flex justify-between"
+                          >
+                            <span>{h?.name}</span>
+                            <span className="font-medium">
+                              × {h?.quantity}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-gray-500 italic mt-1">
+                        No hardware included
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* 🔹 Footer */}
