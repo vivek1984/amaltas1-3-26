@@ -1,40 +1,3 @@
-<!--<!DOCTYPE html>-->
-<!--<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">-->
-<!--    <head>-->
-<!--        <meta charset="utf-8">-->
-<!--        <meta name="viewport" content="width=device-width, initial-scale=1">-->
-        
-<!--        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':-->
-<!--        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],-->
-<!--        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=-->
-<!--        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);-->
-<!--        })(window,document,'script','dataLayer','GTM-M2TSDNG');</script>-->
-        
-        
-<!--        <meta name="csrf-token" content="{{ csrf_token() }}">-->
-
-<!--        <title inertia>{{ config('app.name', 'Amaltas') }}</title>-->
-
-<!--         Fonts -->
-<!--        <link rel="preconnect" href="https://fonts.bunny.net">-->
-<!--        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />-->
-<!--        <link rel="icon" href="/favicon.ico">-->
-
-<!--         Scripts -->
-<!--        @routes-->
-<!--        @viteReactRefresh-->
-<!--        @vite(['resources/js/app.jsx'])-->
-
-        
-<!--        @inertiaHead-->
-<!--    </head>-->
-<!--    <body class="font-sans antialiased">-->
-<!--        @inertia-->
-<!--    </body>-->
-<!--</html>-->
-
-
-
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -64,11 +27,10 @@
         $group = $page['props']['group'] ?? null;
         $cluster = $page['props']['cluster'] ?? null;
 
-        $fallbackImage = asset('images/showroom.jpg');
+        $ogImagePath = 'images/showroom.jpg';
         $ogTitle = 'Amaltas Furniture';
         $ogDescription = 'Premium furniture and Modular Kitchens collection.';
         $ogType = 'website';
-        $ogImage = $fallbackImage;
 
         if ($product) {
             $ogTitle = ($product['name'] ?? 'Product') . ' | Amaltas Furniture';
@@ -76,9 +38,9 @@
             $ogType = 'product';
 
             if (!empty($product['images']) && isset($product['images'][0]['name'])) {
-                $ogImage = asset('storage/' . $product['images'][0]['name']);
+                $ogImagePath = 'storage/' . $product['images'][0]['name'];
             } elseif (!empty($product['small_image'])) {
-                $ogImage = asset('storage/' . $product['small_image']);
+                $ogImagePath = 'storage/' . $product['small_image'];
             }
         } elseif ($group) {
             $ogTitle = ($group['name'] ?? 'Category') . ' | Amaltas Furniture';
@@ -86,7 +48,7 @@
             $ogType = 'website';
 
             if (!empty($group['image'])) {
-                $ogImage = asset('storage/' . $group['image']);
+                $ogImagePath = 'storage/' . $group['image'];
             }
         } elseif ($cluster) {
             $ogTitle = ($cluster['name'] ?? 'Collection') . ' | Amaltas Furniture';
@@ -94,7 +56,22 @@
             $ogType = 'website';
 
             if (!empty($cluster['image'])) {
-                $ogImage = asset('storage/' . $cluster['image']);
+                $ogImagePath = 'storage/' . $cluster['image'];
+            }
+        }
+
+        $ogImage = asset($ogImagePath);
+        $ogImageWidth = 1200;
+        $ogImageHeight = 630;
+        $ogImageType = null;
+
+        $imageAbsolutePath = public_path($ogImagePath);
+        if (is_file($imageAbsolutePath)) {
+            $imageSize = @getimagesize($imageAbsolutePath);
+            if ($imageSize !== false) {
+                $ogImageWidth = (int) ($imageSize[0] ?? $ogImageWidth);
+                $ogImageHeight = (int) ($imageSize[1] ?? $ogImageHeight);
+                $ogImageType = $imageSize['mime'] ?? null;
             }
         }
 
@@ -106,6 +83,12 @@
     <meta property="og:type" content="{{ $ogType }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:image:secure_url" content="{{ $ogImage }}">
+    <meta property="og:image:width" content="{{ $ogImageWidth }}">
+    <meta property="og:image:height" content="{{ $ogImageHeight }}">
+    @if($ogImageType)
+        <meta property="og:image:type" content="{{ $ogImageType }}">
+    @endif
 
     {{-- Twitter Support --}}
     <meta name="twitter:card" content="summary_large_image">
