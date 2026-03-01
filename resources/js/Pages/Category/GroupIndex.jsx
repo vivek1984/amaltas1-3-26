@@ -45,6 +45,7 @@ export default function GroupIndex({ group = null, clusters = [] }) {
       clusters={clusters}
       title={pageTitle}
       description={pageDescription}
+      ogImage={group?.image ? `/storage/${group.image}` : undefined}
     >
       {/* ---------------- GROUP WITH PRODUCTS ---------------- */}
       {group && products.length > 0 && (

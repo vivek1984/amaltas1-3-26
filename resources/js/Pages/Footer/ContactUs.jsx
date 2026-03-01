@@ -72,7 +72,7 @@ export default function ContactUs({ clusters }) {
                 <meta property="og:url" content="https://www.amaltasfurniture.com/contact-us" />
                 <meta
                     property="og:image"
-                    content="https://www.amaltasfurniture.com/images/contact-og.jpg"
+                    content="https://www.amaltasfurniture.com/images/showroom.jpg"
                 />
 
                 {/* Twitter */}
@@ -84,7 +84,7 @@ export default function ContactUs({ clusters }) {
                 />
                 <meta
                     name="twitter:image"
-                    content="https://www.amaltasfurniture.com/images/contact-og.jpg"
+                    content="https://www.amaltasfurniture.com/images/showroom.jpg"
                 />
             </Head>
 

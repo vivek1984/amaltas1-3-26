@@ -26,7 +26,7 @@ export default function ReturnPolicy({ clusters }) {
                 <meta property="og:url" content="https://www.amaltasfurniture.com/return-policy" />
                 <meta
                     property="og:image"
-                    content="https://www.amaltasfurniture.com/images/return-policy-og.jpg"
+                    content="https://www.amaltasfurniture.com/images/showroom.jpg"
                 />
             </Head>
 

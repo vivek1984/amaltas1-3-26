@@ -20,7 +20,7 @@ export default function HotSellerProducts({ products = [] }) {
                     {products.slice(0, 20).map((product, index) => (
                         <a
                             key={index}
-                           href={`${product.slug}?id=product`}
+                            href={`/${product.slug}`}
 
                             className="block bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl
                                        transition-all hover:scale-[1.03] duration-300"

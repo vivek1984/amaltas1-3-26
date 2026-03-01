@@ -20,9 +20,31 @@ class ClusterController extends Controller
      */
     public function index($path, Request $request)
     {
-        if($request->id === 'group') return $this->group($path, $request);
-        if($request->id === 'cluster') return $this->cluster($path, $request);
-        if($request->id === 'product') return $this->product($path);
+        // Backward compatibility: normalize legacy ?id=cluster/group/product URLs
+        // to clean slug URLs while preserving any other query params.
+        if (in_array($request->query('id'), ['cluster', 'group', 'product'], true)) {
+            $query = $request->query();
+            unset($query['id']);
+
+            $cleanUrl = '/' . ltrim($path, '/');
+            if (!empty($query)) {
+                $cleanUrl .= '?' . http_build_query($query);
+            }
+
+            return redirect($cleanUrl, 301);
+        }
+
+        if (Product::where('slug', $path)->exists()) {
+            return $this->product($path);
+        }
+
+        if (Group::where('slug', $path)->exists()) {
+            return $this->group($path, $request);
+        }
+
+        if (Cluster::where('slug', $path)->exists()) {
+            return $this->cluster($path, $request);
+        }
         
         
         $pathStr = $request->path();

@@ -8,10 +8,10 @@ use App\Models\Design;
 use App\Models\Product;
 use App\Models\Size;
 use App\Models\Varient;
+use App\Services\SlugService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Str;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
@@ -23,6 +23,13 @@ use Intervention\Image\ImageManager;
 
 class VarientController extends Controller
 {
+    protected SlugService $slugService;
+
+    public function __construct(SlugService $slugService)
+    {
+        $this->slugService = $slugService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -67,7 +74,7 @@ class VarientController extends Controller
 
             ]);
 
-            $validatedData['slug'] = $this->generateUniqueSlug($request->name, Varient::class, 'slug');
+            $validatedData['slug'] = $this->slugService->generateUniqueSlug($request->name, Varient::class, 'slug');
             $validatedData['product_id'] = $request->product_id;
             $validatedData['size_image'] = $this->handleImage($request->size_image, 'images', 500);
 
@@ -90,7 +97,7 @@ class VarientController extends Controller
 
                     ]);
 
-                    $validatedData['slug'] = $this->generateUniqueSlug($request->name, Varient::class, 'slug');
+                    $validatedData['slug'] = $this->slugService->generateUniqueSlug($request->name, Varient::class, 'slug');
                     $validatedData['varient_id'] = $request->variant_id;
                     $validatedData['size_image'] = $this->handleImage($request->size_image, 'images', 500);
 
@@ -114,7 +121,7 @@ class VarientController extends Controller
             'size_image' => ['required', 'image']
         ]);
 
-        $validatedData['slug'] = $this->generateUniqueSlug($request->name, Size::class, 'slug');
+        $validatedData['slug'] = $this->slugService->generateUniqueSlug($request->name, Size::class, 'slug');
         $validatedData['design_id'] = $request->design_id;
         $validatedData['size_image'] = $this->handleImage($request->size_image, 'images', 500);
         $newSize = Size::create($validatedData);
@@ -123,29 +130,6 @@ class VarientController extends Controller
         $path = 'admin_edit_product?product=' . $product->id;
                     return redirect($path)->with('success', 'Product size created successfully!');
 
-    }
-
-    private function generateUniqueSlug(string $name, string $modelClass, string $slugField = 'slug', ?int $excludeId = null): string
-    {
-        $baseSlug = Str::slug($name);
-        $slug = $baseSlug;
-        $counter = 1;
-
-        while (true) {
-            $query = $modelClass::where($slugField, $slug);
-
-            if ($excludeId !== null) {
-                $query->where('id', '!=', $excludeId);
-            }
-
-            if (!$query->exists()) {
-                return $slug; // Slug is unique
-            }
-
-            // If slug exists, append counter and try again
-            $slug = $baseSlug . '-' . $counter;
-            $counter++;
-        }
     }
 
     public function storeProduct(Request $request) {
@@ -160,12 +144,14 @@ class VarientController extends Controller
         $path_small_image = $this->handleImage($file, 'images', 500);
         $path_thumbnail = $this->handleImage($file, 'images', 50);
 
-        $validatedData['slug'] = $this->generateUniqueSlug($request->name, Varient::class, 'slug');
+        $validatedData['slug'] = $this->slugService->provisionalSlug($request->name);
 
         $validatedData['thumbnail'] = $path_thumbnail;
         $validatedData['small_image'] = $path_small_image;
         // 2. Create the new product record
-        Product::create($validatedData);
+        $product = Product::create($validatedData);
+        $product->slug = $this->slugService->generateCatalogSlugForModel($product);
+        $product->save();
 
         $path = 'admin-product';
         return redirect($path)->with('success', 'Product variant created successfully!');

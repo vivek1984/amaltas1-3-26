@@ -103,7 +103,7 @@ export default function CustomFurniture({ clusters }) {
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.amaltasfurniture.com/custom-furniture" />
-    <meta property="og:image" content="https://www.amaltasfurniture.com/images/custom-furniture-og.jpg" />
+    <meta property="og:image" content="https://www.amaltasfurniture.com/images/showroom.jpg" />
     <meta property="og:site_name" content="Amaltas Furniture" />
 
     {/* Twitter Card */}
@@ -113,7 +113,7 @@ export default function CustomFurniture({ clusters }) {
         name="twitter:description"
         content="Get tailor-made furniture for your home or office in Dehradun. Modern, durable, and crafted with precision."
     />
-    <meta name="twitter:image" content="https://www.amaltasfurniture.com/images/custom-furniture-og.jpg" />
+    <meta name="twitter:image" content="https://www.amaltasfurniture.com/images/showroom.jpg" />
 
     {/* Optional JSON-LD (Improves SEO strongly) */}
     <script type="application/ld+json">
@@ -124,7 +124,7 @@ export default function CustomFurniture({ clusters }) {
             "provider": {
                 "@type": "LocalBusiness",
                 "name": "Amaltas Furniture",
-                "image": "https://www.amaltasfurniture.com/images/custom-furniture-og.jpg",
+                "image": "https://www.amaltasfurniture.com/images/showroom.jpg",
                 "address": {
                     "@type": "PostalAddress",
                     "addressLocality": "Dehradun",

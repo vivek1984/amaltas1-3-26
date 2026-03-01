@@ -12,9 +12,9 @@ use App\Models\Product;
 use App\Models\Size;
 use App\Models\Varient;
 use App\Services\CabinetCostService;
+use App\Services\SlugService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Illuminate\Http\UploadedFile;
 use App\Services\ImageKitService;
@@ -30,12 +30,18 @@ class AdminController extends Controller
     
     protected $costService;
     protected ImageKitService $imageKit;
+    protected SlugService $slugService;
 
     // Inject the service into the constructor
-    public function __construct(CabinetCostService $costService, ImageKitService $imageKit)
+    public function __construct(
+        CabinetCostService $costService,
+        ImageKitService $imageKit,
+        SlugService $slugService
+    )
     {
         $this->costService = $costService;
         $this->imageKit = $imageKit;
+        $this->slugService = $slugService;
     }
     public function dashboard(Request $request)
     {
@@ -124,8 +130,12 @@ class AdminController extends Controller
         $cluster->description = $request->description;
         $cluster->image = $path;
         $cluster->thumbnail = $thumbnail;
-        $cluster->slug = $this->generateUniqueSlug($request->name, Cluster::class, 'slug');
+        $cluster->slug = $this->slugService->provisionalSlug($cluster->name);
         $cluster->save();
+
+        $cluster->slug = $this->slugService->generateCatalogSlugForModel($cluster);
+        $cluster->save();
+
         return redirect('/admin-category');
     }
 
@@ -139,8 +149,12 @@ class AdminController extends Controller
         $cluster->description = $request->description;
         $cluster->image = $path;
         $cluster->thumbnail = $thumbnail;
-        $cluster->slug = $this->generateUniqueSlug($request->name, Group::class, 'slug');
+        $cluster->slug = $this->slugService->provisionalSlug($cluster->name);
         $cluster->save();
+
+        $cluster->slug = $this->slugService->generateCatalogSlugForModel($cluster);
+        $cluster->save();
+
         return redirect('/admin-category');
     }
     
@@ -280,29 +294,6 @@ private function handleImage(
     //     return $path;
     // }
 
-    private function generateUniqueSlug(string $name, string $modelClass, string $slugField = 'slug', ?int $excludeId = null): string
-    {
-        $baseSlug = Str::slug($name);
-        $slug = $baseSlug;
-        $counter = 1;
-
-        while (true) {
-            $query = $modelClass::where($slugField, $slug);
-
-            if ($excludeId !== null) {
-                $query->where('id', '!=', $excludeId);
-            }
-
-            if (!$query->exists()) {
-                return $slug; // Slug is unique
-            }
-
-            // If slug exists, append counter and try again
-            $slug = $baseSlug . '-' . $counter;
-            $counter++;
-        }
-    }
-
     // public function product(Request $request) {
     //     $products = Product::with([
     //         'varients',
@@ -358,7 +349,7 @@ private function handleImage(
         if(request('model') == 'product') {
             $product = Product::find(request('id'));
             if(request('field') == 'name') $product->name = request('value'); {
-            $product->slug = $this->generateUniqueSlug($product->name, Product::class, 'slug');
+            $product->slug = $this->slugService->generateCatalogSlugForModel($product);
             $product->save();
             }
 
@@ -378,7 +369,7 @@ private function handleImage(
             if(request('field') == 'name')
             {
             $varient->name = request('value');
-            $varient->slug = $this->generateUniqueSlug($varient->name, Varient::class, 'slug');
+            $varient->slug = $this->slugService->generateUniqueSlug($varient->name, Varient::class, 'slug');
             $varient->save();
             }
 
@@ -408,7 +399,7 @@ private function handleImage(
 
             if(request('field') == 'name') {
                 $design->name = request('value');
-                $design->slug = $this->generateUniqueSlug($design->name, Design::class, 'slug');
+                $design->slug = $this->slugService->generateUniqueSlug($design->name, Design::class, 'slug');
                 $design->save();
             }
 
@@ -439,7 +430,7 @@ private function handleImage(
 
             if(request('field') == 'name') {
                 $size->name = request('value');
-                $size->slug = $this->generateUniqueSlug($size->name, Size::class, 'slug');
+                $size->slug = $this->slugService->generateUniqueSlug($size->name, Size::class, 'slug');
                 $size->save();
             }
 

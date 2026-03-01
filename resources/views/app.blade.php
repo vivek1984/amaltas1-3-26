@@ -61,45 +61,57 @@
 
     @php
         $product = $page['props']['product'] ?? null;
-    @endphp
+        $group = $page['props']['group'] ?? null;
+        $cluster = $page['props']['cluster'] ?? null;
 
-    @if($product)
-        @php
-            $image = null;
+        $fallbackImage = asset('images/showroom.jpg');
+        $ogTitle = 'Amaltas Furniture';
+        $ogDescription = 'Premium furniture and Modular Kitchens collection.';
+        $ogType = 'website';
+        $ogImage = $fallbackImage;
+
+        if ($product) {
+            $ogTitle = ($product['name'] ?? 'Product') . ' | Amaltas Furniture';
+            $ogDescription = $product['description'] ?? 'Premium quality product from Amaltas Furniture';
+            $ogType = 'product';
 
             if (!empty($product['images']) && isset($product['images'][0]['name'])) {
-                $image = asset('storage/' . $product['images'][0]['name']);
+                $ogImage = asset('storage/' . $product['images'][0]['name']);
             } elseif (!empty($product['small_image'])) {
-                $image = asset('storage/' . $product['small_image']);
+                $ogImage = asset('storage/' . $product['small_image']);
             }
+        } elseif ($group) {
+            $ogTitle = ($group['name'] ?? 'Category') . ' | Amaltas Furniture';
+            $ogDescription = $group['description'] ?? 'Explore furniture categories by Amaltas Furniture.';
+            $ogType = 'website';
 
-            $description = $product['description'] ?? 'Premium quality product from Amaltas Furniture';
-        @endphp
+            if (!empty($group['image'])) {
+                $ogImage = asset('storage/' . $group['image']);
+            }
+        } elseif ($cluster) {
+            $ogTitle = ($cluster['name'] ?? 'Collection') . ' | Amaltas Furniture';
+            $ogDescription = $cluster['description'] ?? 'Explore furniture collections by Amaltas Furniture.';
+            $ogType = 'website';
 
-        <meta property="og:title" content="{{ $product['name'] }} | Amaltas Furniture">
-        <meta property="og:description" content="{{ Str::limit(strip_tags($description), 160) }}">
-        <meta property="og:type" content="product">
-        <meta property="og:url" content="{{ url()->current() }}">
-        @if($image)
-            <meta property="og:image" content="{{ $image }}">
-        @endif
+            if (!empty($cluster['image'])) {
+                $ogImage = asset('storage/' . $cluster['image']);
+            }
+        }
 
-        {{-- Twitter Support --}}
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="{{ $product['name'] }} | Amaltas Furniture">
-        <meta name="twitter:description" content="{{ Str::limit(strip_tags($description), 160) }}">
-        @if($image)
-            <meta name="twitter:image" content="{{ $image }}">
-        @endif
+        $ogDescription = \Illuminate\Support\Str::limit(strip_tags((string) $ogDescription), 160);
+    @endphp
 
-    @else
-        {{-- Default OG for non-product pages --}}
-        <meta property="og:title" content="Amaltas Furniture">
-        <meta property="og:description" content="Premium furniture and Modular Kitchens collection.">
-        <meta property="og:type" content="website">
-        <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:image" content="{{ asset('default-share.jpg') }}">
-    @endif
+    <meta property="og:title" content="{{ $ogTitle }}">
+    <meta property="og:description" content="{{ $ogDescription }}">
+    <meta property="og:type" content="{{ $ogType }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ $ogImage }}">
+
+    {{-- Twitter Support --}}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $ogTitle }}">
+    <meta name="twitter:description" content="{{ $ogDescription }}">
+    <meta name="twitter:image" content="{{ $ogImage }}">
 
     {{-- ============================= --}}
     {{-- 🔥 SERVER SIDE OG TAGS END --}}

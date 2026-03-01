@@ -6900,7 +6900,7 @@ const SearchBar = ({ searchUrl, debounceTime = 300, minQueryLength = 3, classes 
         /* @__PURE__ */ jsx("li", { className: "border-b border-gray-100 last:border-b-0", children: /* @__PURE__ */ jsxs(
           Link,
           {
-            href: `${item.slug}?id=${item.type}`,
+            href: `/${item.slug}`,
             className: "flex items-center p-3 hover:bg-gray-50 transition-colors duration-200",
             onClick: handleResultClick,
             children: [
@@ -7478,11 +7478,11 @@ function Welcome({ clusters, children, title, description }) {
       /* @__PURE__ */ jsx("meta", { name: "ICBM", content: "30.3165, 78.0322" })
     ] }),
     /* @__PURE__ */ jsxs("nav", { style: { display: "none" }, children: [
-      /* @__PURE__ */ jsx(Link, { href: "/sofas?id=cluster", children: "Sofas" }),
-      /* @__PURE__ */ jsx(Link, { href: "/bedroom?id=cluster", children: "Bedroom" }),
-      /* @__PURE__ */ jsx(Link, { href: "/dining?id=cluster", children: "Dining" }),
-      /* @__PURE__ */ jsx(Link, { href: "/wardrobes?id=cluster", children: "Wardrobes" }),
-      /* @__PURE__ */ jsx(Link, { href: "/modular-kitchens?id=cluster", children: "Kitchens" })
+      /* @__PURE__ */ jsx(Link, { href: "/sofas", children: "Sofas" }),
+      /* @__PURE__ */ jsx(Link, { href: "/bedroom", children: "Bedroom" }),
+      /* @__PURE__ */ jsx(Link, { href: "/dining", children: "Dining" }),
+      /* @__PURE__ */ jsx(Link, { href: "/wardrobes", children: "Wardrobes" }),
+      /* @__PURE__ */ jsx(Link, { href: "/modular-kitchens", children: "Kitchens" })
     ] }),
     /* @__PURE__ */ jsx("div", { className: "fixed bottom-5 right-5 z-50", children: /* @__PURE__ */ jsx(ShareButton, { className: "bg-maroon-200 ring-8 ring-maroon-200 shadow-lg" }) }),
     /* @__PURE__ */ jsx(TopStrip, {}),
@@ -8033,7 +8033,7 @@ const __vite_glob_0_21 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.de
 function OutsideDoon({ clusters, slug }) {
   console.log(clusters, slug);
   const phone = "919368330915";
-  const message = `www.amaltasfurniture.com/${slug}?id=product`;
+  const message = `www.amaltasfurniture.com/${slug}`;
   const whatsappLink = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   return /* @__PURE__ */ jsx(Welcome, { clusters, children: /* @__PURE__ */ jsx("div", { className: "bg-gray-100 flex items-center justify-center min-h-screen p-4", children: /* @__PURE__ */ jsxs("div", { className: "bg-white p-8 rounded-xl shadow-xl w-full max-w-md text-center border border-gray-200", children: [
     /* @__PURE__ */ jsx("h1", { className: "text-2xl font-bold text-gray-800 mb-6", children: "More Information Required" }),
@@ -12531,7 +12531,7 @@ function HotSellerProducts({ products = [] }) {
       return /* @__PURE__ */ jsxs(
         "a",
         {
-          href: `${product.slug}?id=product`,
+          href: `/${product.slug}`,
           className: "block bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl\n                                       transition-all hover:scale-[1.03] duration-300",
           children: [
             /* @__PURE__ */ jsx("div", { className: "w-full h-44 sm:h-52 md:h-56 bg-gray-100", children: /* @__PURE__ */ jsx(

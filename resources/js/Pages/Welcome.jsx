@@ -1,14 +1,29 @@
 
-
-
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import TopStrip from "./Index/TopStrip";
 import SecondStrip from "./Index/SecondStrip";
 import CategoryMenu from "./Index/CategoryMenu";
 import Footer from "./Index/Footer";
 import ShareButton from "@/Components/ShareButton";
 
-export default function Welcome({ clusters, children, title, description }) {
+export default function Welcome({
+    clusters,
+    children,
+    title,
+    description,
+    canonical,
+    ogImage,
+}) {
+    const { url } = usePage();
+    const siteOrigin =
+        typeof window !== "undefined"
+            ? window.location.origin
+            : "https://amaltasfurniture.com";
+    const canonicalUrl =
+        canonical || `${siteOrigin}${(url || "/").split("?")[0]}`;
+    const shareImage =
+        ogImage || `${siteOrigin}/images/showroom.jpg`;
+
     return (
         <>
             {/* ================= SEO META (HEAD ONLY) ================= */}
@@ -25,14 +40,11 @@ export default function Welcome({ clusters, children, title, description }) {
 
                 <meta name="robots" content="index, follow" />
                 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-103104998-2"></script>
-                <link
-                    rel="canonical"
-                    href="https://amaltasfurniture.com/"
-                />
+                <link rel="canonical" href={canonicalUrl} />
 
                 {/* Open Graph */}
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content="https://amaltasfurniture.com/" />
+                <meta property="og:url" content={canonicalUrl} />
                 <meta
                     property="og:title"
                     content={title || "Amaltas Furniture & Modular Kitchens | Dehradun"}
@@ -46,7 +58,7 @@ export default function Welcome({ clusters, children, title, description }) {
                 />
                 <meta
                     property="og:image"
-                    content="https://amaltasfurniture.com/storage/images/ban1.png"
+                    content={shareImage}
                 />
 
                 {/* Twitter */}
@@ -64,7 +76,7 @@ export default function Welcome({ clusters, children, title, description }) {
                 />
                 <meta
                     name="twitter:image"
-                    content="https://amaltasfurniture.com/storage/images/ban1.png"
+                    content={shareImage}
                 />
 
                 {/* Local SEO */}
@@ -77,11 +89,11 @@ export default function Welcome({ clusters, children, title, description }) {
             {/* ================= SEO / CRAWLER NAV (BODY ONLY) ================= */}
             {/* Hidden from users, visible to SSR + crawlers */}
             <nav style={{ display: "none" }}>
-                <Link href="/sofas?id=cluster">Sofas</Link>
-                <Link href="/bedroom?id=cluster">Bedroom</Link>
-                <Link href="/dining?id=cluster">Dining</Link>
-                <Link href="/wardrobes?id=cluster">Wardrobes</Link>
-                <Link href="/modular-kitchens?id=cluster">Kitchens</Link>
+                <Link href="/sofas">Sofas</Link>
+                <Link href="/bedroom">Bedroom</Link>
+                <Link href="/dining">Dining</Link>
+                <Link href="/wardrobes">Wardrobes</Link>
+                <Link href="/modular-kitchens">Kitchens</Link>
             </nav>
 
             {/* ================= SHARE BUTTON (CLIENT ONLY) ================= */}
@@ -132,6 +144,22 @@ export default function Welcome({ clusters, children, title, description }) {
                         "https://www.facebook.com/amaltasfurniture/",
                         "https://www.google.com/maps/place/Amaltas+Furniture/"
                     ]
+                }
+                `}
+            </script>
+
+            <script type="application/ld+json">
+                {`
+                {
+                    "@context": "https://schema.org",
+                    "@type": "WebSite",
+                    "name": "Amaltas Furniture & Modular Kitchens",
+                    "url": "${siteOrigin}",
+                    "potentialAction": {
+                        "@type": "SearchAction",
+                        "target": "${siteOrigin}/search?q={search_term_string}",
+                        "query-input": "required name=search_term_string"
+                    }
                 }
                 `}
             </script>

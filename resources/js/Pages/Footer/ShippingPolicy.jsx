@@ -26,7 +26,7 @@ export default function ShippingPolicy({ clusters }) {
                 <meta property="og:url" content="https://www.amaltasfurniture.com/shipping-policy" />
                 <meta
                     property="og:image"
-                    content="https://www.amaltasfurniture.com/images/shipping-policy-og.jpg"
+                    content="https://www.amaltasfurniture.com/images/showroom.jpg"
                 />
             </Head>
 

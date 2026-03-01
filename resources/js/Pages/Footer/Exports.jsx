@@ -24,7 +24,7 @@ export default function Exports({ clusters }) {
                 />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content="https://www.amaltasfurniture.com/exports" />
-                <meta property="og:image" content="https://www.amaltasfurniture.com/images/exports-og.jpg" />
+                <meta property="og:image" content="https://www.amaltasfurniture.com/images/showroom.jpg" />
             </Head>
 
             <Welcome clusters={clusters}>

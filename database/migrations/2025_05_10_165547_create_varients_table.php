@@ -15,7 +15,6 @@ return new class extends Migration
         Schema::create('varients', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
-            $table->string('shippable')->nullable();
             $table->string('qty')->nullable();
             $table->integer('mrp')->nullable();
             $table->integer('price')->nullable();

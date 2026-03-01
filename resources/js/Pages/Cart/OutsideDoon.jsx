@@ -3,7 +3,7 @@ import Welcome from "../Welcome";
 export default function OutsideDoon({ clusters, slug }) {
     console.log(clusters, slug);
     const phone = "919368330915"; // your WhatsApp number
-    const message = `www.amaltasfurniture.com/${slug}?id=product`;
+    const message = `www.amaltasfurniture.com/${slug}`;
     const whatsappLink = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
     return (

@@ -136,10 +136,10 @@ const SearchBar = ({ searchUrl, debounceTime = 300, minQueryLength = 3, classes 
                     {!loading && !error && results.length > 0 && (
                         <ul>
                             {results.map((item) => (
-                                // Dynamically link based on item type and ID
+                                // Use clean slug URLs (no query params)
                                 <li key={`${item.type}-${item.id}`} className="border-b border-gray-100 last:border-b-0">
                                     <Link
-                                        href={`${item.slug}?id=${item.type}`} // Adjust URL structure as needed
+                                        href={`/${item.slug}`}
                                         className="flex items-center p-3 hover:bg-gray-50 transition-colors duration-200"
                                         onClick={handleResultClick}
                                     >

@@ -35,7 +35,7 @@ export default function TermsOfUse({ clusters = [] }) {
         />
         <meta
           property="og:image"
-          content="https://www.amaltasfurniture.com/images/terms-of-use-og.jpg"
+          content="https://www.amaltasfurniture.com/images/showroom.jpg"
         />
       </Head>
 

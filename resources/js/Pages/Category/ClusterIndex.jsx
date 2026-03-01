@@ -45,6 +45,7 @@ export default function ClusterIndex({ cluster, clusters }) {
             clusters={clusters}
             title={pageTitle}
             description={pageDescription}
+            ogImage={cluster.image ? `/storage/${cluster.image}` : undefined}
         >
             <div className="min-h-screen font-inter">
 

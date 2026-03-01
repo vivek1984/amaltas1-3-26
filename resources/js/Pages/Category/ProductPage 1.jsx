@@ -46,7 +46,7 @@ export default function ProductPage({ product }) {
     }, 4500);
   };
 
-  // --- URL helpers (preserves ?id=product)
+  // --- URL helpers (preserves variant/design/size query params)
 const readSelectionFromUrl = () => {
   const params = new URLSearchParams(window.location.search);
   return {
